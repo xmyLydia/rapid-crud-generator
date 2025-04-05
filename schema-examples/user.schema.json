@@ -1,0 +1,8 @@
+{
+  "User": {
+    "id": "Long",
+    "name": "String",
+    "email": "String",
+    "createdAt": "LocalDateTime"
+  }
+}
