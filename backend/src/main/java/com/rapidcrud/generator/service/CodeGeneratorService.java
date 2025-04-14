@@ -23,7 +23,7 @@ public class CodeGeneratorService {
 
     public CodeGeneratorService() throws IOException {
         cfg = new Configuration(Configuration.VERSION_2_3_32);
-        cfg.setClassLoaderForTemplateLoading(getClass().getClassLoader(), "templates/springboot");
+        cfg.setClassLoaderForTemplateLoading(getClass().getClassLoader(), "templates");
         cfg.setDefaultEncoding("UTF-8");
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     }
@@ -42,7 +42,7 @@ public class CodeGeneratorService {
         }
         dataModel.put("fields", fieldList);
 
-        Template template = cfg.getTemplate("Entity.ftl");
+        Template template = cfg.getTemplate("springboot/Entity.ftl");
 
         File outputDir = new File("output/entity");
         if (!outputDir.exists()) {
@@ -61,7 +61,7 @@ public class CodeGeneratorService {
         dataModel.put("className", className);
         dataModel.put("entityPackage", packageBase + ".entity");
 
-        Template template = cfg.getTemplate("Repository.ftl");
+        Template template = cfg.getTemplate("springboot/Repository.ftl");
 
         File outputDir = new File("output/repository");
         if (!outputDir.exists()) {
@@ -80,7 +80,7 @@ public class CodeGeneratorService {
         dataModel.put("repositoryPackage", packageBase + ".repository");
         dataModel.put("entityPackage", packageBase + ".entity");
 
-        Template template = cfg.getTemplate("Controller.ftl");
+        Template template = cfg.getTemplate("springboot/Controller.ftl");
 
         File outputDir = new File("output/controller");
         if (!outputDir.exists()) {
@@ -103,4 +103,41 @@ public class CodeGeneratorService {
         System.out.println("✅ Generated zip: " + zipFile.getAbsolutePath());
         return zipFileName;
     }
+
+    public void generateAngularModule(String className, Map<String, String> fields) throws Exception {
+        List<Map<String, String>> fieldList = new ArrayList<>();
+        for (Map.Entry<String, String> entry : fields.entrySet()) {
+            Map<String, String> field = new HashMap<>();
+            field.put("name", entry.getKey());
+            field.put("type", entry.getValue());
+            fieldList.add(field);
+        }
+
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("className", className);
+        dataModel.put("fields", fieldList);
+
+        String folder = "output/frontend/src/app/" + className.toLowerCase();
+        new File(folder).mkdirs();
+
+        // 模板列表（模板名，目标文件名）
+        Map<String, String> files = Map.of(
+                "table.component.ts.ftl", className.toLowerCase() + "-table.component.ts",
+                "table.component.html.ftl", className.toLowerCase() + "-table.component.html",
+                "form.component.ts.ftl", className.toLowerCase() + "-form.component.ts",
+                "form.component.html.ftl", className.toLowerCase() + "-form.component.html",
+                "service.ts.ftl", className.toLowerCase() + ".service.ts",
+                "module.ts.ftl", className.toLowerCase() + ".module.ts"
+        );
+
+        for (Map.Entry<String, String> entry : files.entrySet()) {
+            Template template = cfg.getTemplate("angular/" + entry.getKey());
+            try (Writer writer = new FileWriter(new File(folder, entry.getValue()))) {
+                template.process(dataModel, writer);
+            }
+        }
+
+        System.out.println("✅ Generated Angular module for " + className);
+    }
+
 }

@@ -26,7 +26,9 @@ public class GeneratorController {
                 generatorService.generateEntity(className, fields);
                 generatorService.generateRepository(className);
                 generatorService.generateController(className);
+                generatorService.generateAngularModule(className, fields);
                 final String zip = generatorService.zipGeneratedCode(className);
+
                 return "✅ Entity, Repository and Controller generated in /output, and zipped at " + zip;
             }
         } catch (Exception e) {
