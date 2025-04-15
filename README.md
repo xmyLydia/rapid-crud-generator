@@ -24,7 +24,7 @@ No boilerplate. No setup. Just schema in, code out.
 
 ## 📦 Output Structure
 ```
-example-output/
+output/
 ├── backend/
 │   ├── controller/
 │   ├── entity/
