@@ -127,3 +127,14 @@ You can define your own templates to meet your project needs.
 
 - 🎨 **Angular Themes & Dark Mode**  
   Let users pick UI themes for the generated frontend, including dark mode and layout styles.
+
+---
+
+💬 Feedback Welcome
+
+Have ideas, bugs, or feature suggestions?
+
+- Open an [Issue](https://github.com/xmyLydia/rapid-crud-generator/issues)
+- Or simply leave a ⭐ and tell us what you liked!
+
+We're listening. 
