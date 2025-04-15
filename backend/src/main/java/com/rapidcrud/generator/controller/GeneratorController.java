@@ -23,7 +23,7 @@ public class GeneratorController {
     public String generate(@RequestBody Map<String, Map<String, String>> schema) {
         try {
             List<String> classNames = new ArrayList<>();
-
+            generatorService.copyAngularProjectTemplate();
             for (Map.Entry<String, Map<String, String>> entry : schema.entrySet()) {
                 String className = entry.getKey();
                 Map<String, String> fields = entry.getValue();
@@ -35,6 +35,9 @@ public class GeneratorController {
 
                 classNames.add(className.toLowerCase());
             }
+
+            generatorService.generateAngularRootModule(classNames);
+            generatorService.generateAngularAppComponent(classNames);
 
             // zip after all classes are generated
             String zip = generatorService.zipGeneratedCode(classNames);

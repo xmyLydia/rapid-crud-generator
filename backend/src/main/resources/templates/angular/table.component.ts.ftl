@@ -11,7 +11,7 @@ export class ${className}TableComponent implements OnInit {
   constructor(private service: ${className}Service) {}
 
   ngOnInit(): void {
-    this.service.getAll().subscribe(data => {
+    this.service.getAll().subscribe((data: any[]) => {
       this.${className?lower_case}s = data;
     });
   }

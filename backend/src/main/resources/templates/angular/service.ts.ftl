@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ${className}Service {
   constructor(private http: HttpClient) {}
 
-  getAll() {
-    return this.http.get('/api/${className?lower_case}');
+  getAll(): Observable<any[]> {
+    return this.http.get<any[]>('/api/${className?lower_case}');
   }
 
   create(data: any) {

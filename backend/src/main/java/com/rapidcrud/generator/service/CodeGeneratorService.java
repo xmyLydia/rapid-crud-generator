@@ -3,12 +3,15 @@ package com.rapidcrud.generator.service;
 import com.rapidcrud.generator.utils.ZipUtils;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
+
+import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -140,6 +143,60 @@ public class CodeGeneratorService {
         }
 
         System.out.println("✅ Generated Angular module for " + className);
+    }
+
+    public void generateAngularRootModule(List<String> classNames) throws Exception {
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("modules", classNames);
+
+        String targetDir = "output/frontend/src/app";
+
+        // 生成 app.module.ts
+        Template moduleTemplate = cfg.getTemplate("angular/app.module.ts.ftl");
+        try (Writer writer = new FileWriter(new File(targetDir, "app.module.ts"))) {
+            moduleTemplate.process(dataModel, writer);
+        }
+
+        // 生成 app-routing.module.ts
+        Template routingTemplate = cfg.getTemplate("angular/app-routing.module.ts.ftl");
+        try (Writer writer = new FileWriter(new File(targetDir, "app-routing.module.ts"))) {
+            routingTemplate.process(dataModel, writer);
+        }
+
+        System.out.println("✅ Generated Angular app.module.ts and app-routing.module.ts");
+    }
+
+    public void generateAngularAppComponent(List<String> classNames) throws Exception {
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("modules", classNames);
+
+        String targetDir = "output/frontend/src/app";
+
+        Template tsTemplate = cfg.getTemplate("angular/app.component.ts.ftl");
+        try (Writer writer = new FileWriter(new File(targetDir, "app.component.ts"))) {
+            tsTemplate.process(dataModel, writer);
+        }
+
+        Template htmlTemplate = cfg.getTemplate("angular/app.component.html.ftl");
+        try (Writer writer = new FileWriter(new File(targetDir, "app.component.html"))) {
+            htmlTemplate.process(dataModel, writer);
+        }
+
+        System.out.println("✅ Generated AppComponent");
+    }
+
+    public void copyAngularProjectTemplate() throws IOException {
+        File source = new File("frontend-template");
+        File destination = new File("output/frontend");
+
+        // 删除旧的 frontend 文件夹
+        if (destination.exists()) {
+            FileUtils.deleteDirectory(destination);
+        }
+
+        // 拷贝模板结构
+        FileUtils.copyDirectory(source, destination);
+        System.out.println("✅ Copied Angular base project to output/frontend/");
     }
 
 }
