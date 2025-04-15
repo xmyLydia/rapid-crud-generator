@@ -24,20 +24,23 @@ No boilerplate. No setup. Just schema in, code out.
 
 ## 📦 Output Structure
 ```
-output/
-├── controller/
-│   ├── UserController.java
-│   └── PostController.java
-├── entity/
-│   ├── User.java
-│   └── Post.java
-├── repository/
-│   ├── UserRepository.java
-│   └── PostRepository.java
+example-output/
+├── backend/
+│   ├── controller/
+│   ├── entity/
+│   └── repository/
 └── frontend/
-└── src/app/
-├── user/
-└── post/
+    ├── angular.json
+    ├── package.json
+    └── src/
+        └── app/
+            ├── user/
+            ├── product/
+            ├── app.module.ts
+            ├── app-routing.module.ts
+            ├── app.component.ts
+            └── app.component.html
+
 ```
 
 ---
