@@ -9,10 +9,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import freemarker.template.Configuration;
 
@@ -92,16 +90,20 @@ public class CodeGeneratorService {
         }
     }
 
-    public String zipGeneratedCode(String className) throws IOException {
+    public String zipGeneratedCode(List<String> classNames) throws IOException {
         File sourceDir = new File("output");
-        String zipFileName = "output-" + className.toLowerCase() + ".zip";
+
+        String joinedNames = String.join("_", classNames);
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String zipFileName = "generated_" + joinedNames + "_" + timestamp + ".zip";
         File zipFile = new File(zipFileName);
 
-        if (zipFile.exists()) zipFile.delete(); // 防止旧文件干扰
+        if (zipFile.exists()) zipFile.delete();
 
         ZipUtils.zipDirectory(sourceDir, zipFile);
-        System.out.println("✅ Generated zip: " + zipFile.getAbsolutePath());
-        return zipFileName;
+        System.out.println("✅ Zipped all modules to: " + zipFile.getAbsolutePath());
+
+        return zipFile.getAbsolutePath();
     }
 
     public void generateAngularModule(String className, Map<String, String> fields) throws Exception {
