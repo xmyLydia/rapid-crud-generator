@@ -46,11 +46,17 @@ output/
 ---
 
 ## 🚀 How to Use (Developer Mode)
+
 ### 1. Start backend (Spring Boot)
 `cd backend
 ./mvnw spring-boot:run`
 
-### 2. Send your JSON schema via Postman or curl
+### 2. Explore API via Swagger UI
+You can view and test the API in your browser:
+
+🔗 http://localhost:8080/swagger-ui/index.html
+
+### 3. Send your JSON schema via Postman or curl
 
 Make sure your backend service is running at `http://localhost:8080`.
 
@@ -61,28 +67,48 @@ curl -X POST http://localhost:8080/api/generate \
   -H "Content-Type: application/json" \
   -d @../example-schema.json
 ```
+#### Example - example-schema.json
+```json
+{
+    "schema": {
+        "User": {
+            "id": "Long",
+            "name": "String"
+        },
+        "Product": {
+            "id": "Long",
+            "title": "String",
+            "price": "Double"
+        }
+    }
+}
+```
 📝 Note: 
 * Make sure the path ../example-schema.json is correct. Adjust the path as needed based on your working directory.
 * Alternatively, you can use Postman to send a POST request to /api/generate, with the schema in the request body and Content-Type: application/json.
 
-### 🧪 Example Input (JSON Schema: example-schema.json)
+### 3. A zip file will be generated in your project root
+
+### 🍃 MongoDB Mode Support
+
+By default, the backend is generated using **Spring Boot + JPA (SQL)**.
+
+You can also generate **MongoDB-compatible code** using Spring Data MongoDB.
+
+To enable it, simply add `"type": "mongo"` to your request:
 
 ```json
 {
-  "User": {
-    "id": "Long",
-    "username": "String",
-    "email": "String"
-  },
-  "Product": {
-    "id": "Long",
-    "title": "String",
-    "price": "Double"
+  "type": "mongo",
+  "schema": {
+    "User": {
+      "name": "String",
+      "email": "String"
+    }
   }
 }
 ```
-### 3. A zip file will be generated in your project root
-
+ 
 ---
 ## 🧩 Customize Templates
 All templates are located in `backend/src/main/resources/templates/:`

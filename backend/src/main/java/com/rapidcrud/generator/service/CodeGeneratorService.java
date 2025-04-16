@@ -7,13 +7,11 @@ import freemarker.template.TemplateExceptionHandler;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.net.URL;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import freemarker.template.Configuration;
 
@@ -29,7 +27,7 @@ public class CodeGeneratorService {
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     }
 
-    public void generateEntity(String className, Map<String, String> fields) throws Exception {
+    public void generateEntity(String className, Map<String, String> fields, boolean useMongo) throws Exception {
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("packageName", packageBase + ".entity");
         dataModel.put("className", className);
@@ -43,9 +41,11 @@ public class CodeGeneratorService {
         }
         dataModel.put("fields", fieldList);
 
-        Template template = cfg.getTemplate("springboot/Entity.ftl");
+        String templatePath = useMongo ? "mongo/mongo-entity.ftl" : "springboot/Entity.ftl";
 
-        File outputDir = new File("output/entity");
+        Template template = cfg.getTemplate(templatePath);
+
+        File outputDir =  new File(getOutputBase(useMongo) + "/entity");
         if (!outputDir.exists()) {
             outputDir.mkdirs();
         }
@@ -56,15 +56,16 @@ public class CodeGeneratorService {
     }
 
 
-    public void generateRepository(String className) throws Exception {
+    public void generateRepository(String className, boolean useMongo) throws Exception {
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("packageName", packageBase + ".repository");
         dataModel.put("className", className);
         dataModel.put("entityPackage", packageBase + ".entity");
 
-        Template template = cfg.getTemplate("springboot/Repository.ftl");
+        String templatePath = useMongo ? "mongo/mongo-repository.ftl" : "springboot/Repository.ftl";
+        Template template = cfg.getTemplate(templatePath);
+        File outputDir =  new File(getOutputBase(useMongo) + "/repository");
 
-        File outputDir = new File("output/repository");
         if (!outputDir.exists()) {
             outputDir.mkdirs();
         }
@@ -74,7 +75,7 @@ public class CodeGeneratorService {
         }
     }
 
-    public void generateController(String className) throws Exception {
+    public void generateController(String className, boolean useMongo) throws Exception {
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("packageName", packageBase + ".controller");
         dataModel.put("className", className);
@@ -83,7 +84,7 @@ public class CodeGeneratorService {
 
         Template template = cfg.getTemplate("springboot/Controller.ftl");
 
-        File outputDir = new File("output/controller");
+        File outputDir = new File(getOutputBase(useMongo) + "/controller");
         if (!outputDir.exists()) {
             outputDir.mkdirs();
         }
@@ -100,7 +101,6 @@ public class CodeGeneratorService {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String zipFileName = "generated_" + joinedNames + "_" + timestamp + ".zip";
         File zipFile = new File(zipFileName);
-
         if (zipFile.exists()) zipFile.delete();
 
         ZipUtils.zipDirectory(sourceDir, zipFile);
@@ -199,4 +199,7 @@ public class CodeGeneratorService {
         System.out.println("✅ Copied Angular base project to output/frontend/");
     }
 
+    private String getOutputBase(boolean useMongo) {
+        return useMongo ? "output/backend-mongo" : "output/backend";
+    }
 }

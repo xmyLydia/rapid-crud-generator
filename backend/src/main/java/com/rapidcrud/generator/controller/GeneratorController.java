@@ -1,10 +1,16 @@
 package com.rapidcrud.generator.controller;
 
+import com.rapidcrud.generator.dto.CodeGenRequest;
 import com.rapidcrud.generator.service.CodeGeneratorService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +18,7 @@ import java.util.Map;
 @RequestMapping("/api")
 public class GeneratorController {
 
+    public static final String MONGO = "mongo";
     private final CodeGeneratorService generatorService;
 
     @Autowired
@@ -19,18 +26,31 @@ public class GeneratorController {
         this.generatorService = generatorService;
     }
 
+    @Operation(summary = "Generate full-stack CRUD code", description = "Accepts a JSON schema and generates backend + frontend code with optional Mongo support")
+    @ApiResponse(responseCode = "200", description = "Success message or error info")
     @PostMapping("/generate")
-    public String generate(@RequestBody Map<String, Map<String, String>> schema) {
+    public String generate(@RequestBody CodeGenRequest request) {
         try {
+            FileUtils.deleteDirectory(new File("output"));
+
+            String type = request.getType();
+            boolean useMongo = "mongo".equalsIgnoreCase(type);
+
+            Map<String, Map<String, String>> schema = request.getSchema();
+            if (schema == null || schema.isEmpty()) {
+                return "❌ No schema provided.";
+            }
+
             List<String> classNames = new ArrayList<>();
             generatorService.copyAngularProjectTemplate();
+
             for (Map.Entry<String, Map<String, String>> entry : schema.entrySet()) {
                 String className = entry.getKey();
                 Map<String, String> fields = entry.getValue();
 
-                generatorService.generateEntity(className, fields);
-                generatorService.generateRepository(className);
-                generatorService.generateController(className);
+                generatorService.generateEntity(className, fields, useMongo);
+                generatorService.generateRepository(className, useMongo);
+                generatorService.generateController(className, useMongo);
                 generatorService.generateAngularModule(className, fields);
 
                 classNames.add(className.toLowerCase());
@@ -39,13 +59,15 @@ public class GeneratorController {
             generatorService.generateAngularRootModule(classNames);
             generatorService.generateAngularAppComponent(classNames);
 
-            // zip after all classes are generated
             String zip = generatorService.zipGeneratedCode(classNames);
 
-            return "✅ Code for [" + String.join(", ", classNames) + "] generated and zipped at: " + zip;
+            return "✅ Code (" + (useMongo ? "MongoDB" : "SQL") + ") for [" + String.join(", ", classNames) + "] generated and zipped at: " + zip;
+
         } catch (Exception e) {
             e.printStackTrace();
             return "❌ Code generation failed: " + e.getMessage();
         }
     }
+
+
 }
