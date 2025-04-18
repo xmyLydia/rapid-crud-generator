@@ -1,6 +1,8 @@
 package com.rapidcrud.generator.controller;
 
 import com.rapidcrud.generator.dto.CodeGenRequest;
+import com.rapidcrud.generator.kafka.AuditLogEvent;
+import com.rapidcrud.generator.kafka.KafkaProducerService;
 import com.rapidcrud.generator.service.CodeGeneratorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,6 +28,9 @@ public class GeneratorController {
     public GeneratorController(CodeGeneratorService generatorService) {
         this.generatorService = generatorService;
     }
+
+    @Autowired
+    private KafkaProducerService kafkaProducerService;
 
     @Operation(summary = "Generate full-stack CRUD code", description = "Accepts a JSON schema and generates backend + frontend code with optional Mongo support")
     @ApiResponse(responseCode = "200", description = "Success message or error info")
@@ -60,6 +66,14 @@ public class GeneratorController {
             generatorService.generateAngularAppComponent(classNames);
 
             String zip = generatorService.zipGeneratedCode(classNames);
+            //kafka send audit log event
+            AuditLogEvent event = new AuditLogEvent(
+                    "GENERATE",
+                    String.join(",", classNames),
+                    request.toString(),
+                    LocalDateTime.now()
+            );
+            kafkaProducerService.sendLog(event);
 
             return "✅ Code (" + (useMongo ? "MongoDB" : "SQL") + ") for [" + String.join(", ", classNames) + "] generated and zipped at: " + zip;
 
