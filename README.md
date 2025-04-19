@@ -122,7 +122,10 @@ sequenceDiagram
     User->>SpringBoot: POST /api/generate
     SpringBoot->>KafkaProducer: Send AuditLogEvent
     KafkaProducer->>KafkaBroker: Publish to audit-log-topic
+    KafkaConsumer->>KafkaBroker: Poll audit-log-topic
+    KafkaBroker-->>KafkaConsumer: AuditLogEvent
     KafkaConsumer->>MongoDB: Save to audit_logs collection
+
 ```
 
 ### ✅ Example Payload
