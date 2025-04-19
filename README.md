@@ -87,7 +87,7 @@ curl -X POST http://localhost:8080/api/generate \
 * Make sure the path ../example-schema.json is correct. Adjust the path as needed based on your working directory.
 * Alternatively, you can use Postman to send a POST request to /api/generate, with the schema in the request body and Content-Type: application/json.
 
-### 3. A zip file will be generated in your project root
+### 4. A zip file will be generated in your project root
 
 ### 🍃 MongoDB Mode Support
 
@@ -108,7 +108,62 @@ To enable it, simply add `"type": "mongo"` to your request:
   }
 }
 ```
- 
+
+---
+📊 Asynchronous Audit Logging with Kafka + MongoDB (v0.2.1)
+Every time `/api/generate` is called, a structured AuditLogEvent is sent to Kafka and then persisted asynchronously in MongoDB.
+
+This allows the system to log all code generation activity without affecting the user experience.
+> This feature is automatically triggered whenever code is generated.
+### ✅ Flow Overview
+
+```mermaid
+sequenceDiagram
+    User->>SpringBoot: POST /api/generate
+    SpringBoot->>KafkaProducer: Send AuditLogEvent
+    KafkaProducer->>KafkaBroker: Publish to audit-log-topic
+    KafkaConsumer->>MongoDB: Save to audit_logs collection
+```
+
+### ✅ Example Payload
+
+```json
+{
+  "action": "GENERATE",
+  "entity": "User,Product",
+  "payload": "{...originalRequest}",
+  "timestamp": "2025-04-19T10:00:00"
+}
+```
+
+### ✅ Technologies Used
+
+| Layer       | Stack                                                                 |
+|-------------|-----------------------------------------------------------------------|
+| Kafka       | `spring-kafka`, `audit-log-topic`, `JsonSerializer/Deserializer`     |
+| MongoDB     | `spring-boot-starter-data-mongodb`, `AuditLogDocument`               |
+| Decoupling  | Non-blocking, fully async consumer                                    |
+
+### ✅ MongoDB Configuration
+In `application.yml`:
+
+```yaml
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: rapid_crud_logs
+
+```
+You can explore audit_logs using [MongoDB Compass](https://www.mongodb.com/products/compass) or:
+
+```bash
+mongo
+use rapid_crud_logs
+db.audit_logs.find().pretty()
+```
+
 ---
 ## 🧩 Customize Templates
 All templates are located in `backend/src/main/resources/templates/:`
