@@ -110,11 +110,12 @@ To enable it, simply add `"type": "mongo"` to your request:
 ```
 
 ---
-📊 Asynchronous Audit Logging with Kafka + MongoDB (v0.2.1)
+📊 Asynchronous Audit Logging with Kafka + MongoDB (v1.1.1)
 Every time `/api/generate` is called, a structured AuditLogEvent is sent to Kafka and then persisted asynchronously in MongoDB.
 
 This allows the system to log all code generation activity without affecting the user experience.
 > This feature is automatically triggered whenever code is generated.
+> Updated and enhanced in v1.1.2 — now includes retries, DLQ, and Prometheus metrics.
 ### ✅ Flow Overview
 
 ```mermaid
@@ -166,6 +167,34 @@ mongo
 use rapid_crud_logs
 db.audit_logs.find().pretty()
 ```
+## 🗭 Version History
+
+### 📌 `v1.1.2` – Kafka DLQ + Observability
+
+**Release date**: 2025-04-21  
+This version introduces production-level reliability and observability to the audit logging system.
+
+- ✅ Kafka consumer retry logic with jitter delay
+- ✅ Dead Letter Queue (DLQ) for failed messages
+- ✅ Prometheus metrics for DLQ success count and processing duration
+- ✅ Grafana dashboard integration via Docker Compose
+- ✅ Clean separation of concerns for log collection vs. business logic
+
+---
+
+### 📌 `v1.1.1` – Initial Audit Logging (Async Kafka + MongoDB)
+
+- Kafka producer sends `AuditLogEvent` on every `/api/generate` request
+- MongoDB stores audit logs asynchronously
+- Non-blocking architecture, full decoupling from main flow
+
+---
+
+### 📌 `v1.1.0` – Swagger UI & MongoDB Mode
+
+- 🧭 Swagger UI integration at `/swagger-ui/index.html`
+- 🍃 MongoDB mode supported with `"type": "mongo"` in schema requests
+- 🛠️ Spring Data MongoDB integration for schema-driven document persistence
 
 ---
 ## 🧩 Customize Templates
