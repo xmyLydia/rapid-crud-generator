@@ -1,24 +1,37 @@
 spring:
   application:
     name: generator
+  logging:
+    level:
+      root: info
 
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: audit-consumer-group
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
+      max-poll-records: 5
     producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer # ✅ Producer 的 key 序列化方式
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer # ✅ Producer 的 value 序列化为 JSON
+      # 你可以发送 Java 对象，如：kafkaTemplate.send("topic", auditLogEvent)
     template:
-      default-topic: audit-log-topic
+      default-topic: audit-log-topic # ✅ 默认 topic，方便不指定 topic 时使用
 
   data:
     mongodb:
       host: localhost
       port: 27017
       database: rapid_crud_logs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: generator
