@@ -19,7 +19,9 @@ No boilerplate. No setup. Just schema in, code out.
 - 🎛️ Auto-generate Angular Admin Dashboard (CRUD)
 - 📦 One-click zip download of the generated code
 - 🛠️ Easily extend, run, or deploy the code
-
+- 📊 Asynchronous Audit Logging with Kafka + MongoDB
+- 🔍 Elasticsearch integration for searchable logs
+- 📈 Kibana + Prometheus + Grafana observability (Docker Compose)
 ---
 
 ## 📦 Output Structure
@@ -48,8 +50,10 @@ output/
 ## 🚀 How to Use (Developer Mode)
 
 ### 1. Start backend (Spring Boot)
+```bash
 `cd backend
 ./mvnw spring-boot:run`
+```
 
 ### 2. Explore API via Swagger UI
 You can view and test the API in your browser:
@@ -89,6 +93,28 @@ curl -X POST http://localhost:8080/api/generate \
 
 ### 4. A zip file will be generated in your project root
 
+### 🔎 Search Audit Logs (Elasticsearch)
+
+Endpoint: POST `/api/logs/search`
+
+Example request:
+```json
+{
+"action": "GENERATE",
+"entity": "user",
+"keyword": "Product",
+"page": 0,
+"size": 10
+}
+```
+Searchable fields:
+- action
+- entity
+- full-text keyword (applies to payload)
+- pagination supported
+
+View Kibana UI: http://localhost:5601
+
 ### 🍃 MongoDB Mode Support
 
 By default, the backend is generated using **Spring Boot + JPA (SQL)**.
@@ -126,7 +152,7 @@ sequenceDiagram
     KafkaConsumer->>KafkaBroker: Poll audit-log-topic
     KafkaBroker-->>KafkaConsumer: AuditLogEvent
     KafkaConsumer->>MongoDB: Save to audit_logs collection
-
+    KafkaConsumer->>Elasticsearch: Index log document
 ```
 
 ### ✅ Example Payload
@@ -167,6 +193,11 @@ mongo
 use rapid_crud_logs
 db.audit_logs.find().pretty()
 ```
+
+## 📚 Developer Docs
+
+- [ObjectMapper Best Practices](./docs/object-mapper-best-practices.md)
+
 ## 🗭 Version History
 
 ### 📌 `v1.1.2` – Kafka DLQ + Observability
@@ -181,6 +212,12 @@ This version introduces production-level reliability and observability to the au
 - ✅ Clean separation of concerns for log collection vs. business logic
 
 ---
+### 📌 v1.2.0 – Elasticsearch Search + Kibana Logs
+
+- Add Elasticsearch client integration
+- `/api/logs/search` REST endpoint
+- Filter by `action/entity/keyword`
+- Docker-compose support for Elasticsearch + Kibana
 
 ### 📌 `v1.1.1` – Initial Audit Logging (Async Kafka + MongoDB)
 

@@ -1,12 +1,22 @@
 package com.rapidcrud.generator.kafka;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rapidcrud.generator.mongo.AuditLogDocument;
 import com.rapidcrud.generator.mongo.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Map;
+
 
 @Slf4j
 @Service
@@ -25,16 +35,17 @@ public class KafkaConsumerService {
 
     private final AuditLogRepository auditLogRepository;
 
+    private final ObjectMapper objectMapper;
+
+    private final ElasticsearchClient elasticsearchClient;
+
     @KafkaListener(
             topics = "audit-log-topic",
             groupId = "audit-consumer-group",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consume(AuditLogEvent event, Acknowledgment ack) {
+    public void consume(AuditLogEvent event, Acknowledgment ack) throws IOException {
         printLog(event);
-        if ("user,product".equals(event.getEntity())) {
-            throw new RuntimeException("💥 Simulated failure for retry demo");
-        }
         // Save to Mongo DB
         AuditLogDocument doc = new AuditLogDocument();
         doc.setAction(event.getAction());
@@ -44,7 +55,20 @@ public class KafkaConsumerService {
 
         auditLogRepository.save(doc);
 
-        // ✅ 成功处理后手动提交 offset
+        //Elastic search
+        try {
+            String json = objectMapper.writeValueAsString(event);
+            Map<String, Object> jsonMap = objectMapper.readValue(json, new TypeReference<>() {});
+
+            IndexRequest<Map<String, Object>> request = IndexRequest.of(builder ->
+                    builder.index("audit-logs").document(jsonMap)
+            );
+            IndexResponse response = elasticsearchClient.index(request);
+            log.info("✅ Indexed to Elasticsearch with ID: {}", response.id());
+        } catch (Exception e) {
+            log.error("❌ Elasticsearch index failed", e);
+        }
+        // ✅ Manually submit ACK after success
         ack.acknowledge();
         log.info("✅ Saved to MongoDB: {}", doc);
     }
