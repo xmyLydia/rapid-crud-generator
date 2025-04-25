@@ -21,7 +21,9 @@ No boilerplate. No setup. Just schema in, code out.
 - 🛠️ Easily extend, run, or deploy the code
 - 📊 Asynchronous Audit Logging with Kafka + MongoDB
 - 🔍 Elasticsearch integration for searchable logs
+- ⚡ Unified Async Task Service with built-in Prometheus metrics (success, failure, latency)
 - 📈 Kibana + Prometheus + Grafana observability (Docker Compose)
+
 ---
 
 ## 📦 Output Structure
@@ -199,7 +201,18 @@ db.audit_logs.find().pretty()
 - [ObjectMapper Best Practices](./docs/object-mapper-best-practices.md)
 
 ## 🗭 Version History
+### 📌 `v1.3.1` – Unified Async Task Service + Prometheus Observability
 
+**Release date**: 2025-04-25  
+This version focuses on improving asynchronous task management and enhancing system observability.
+
+- ✅ Added `AsyncLogService` for unified async task execution
+- ✅ Automatic metrics recording: success count, failure count, latency (including p95/p99 percentiles)
+- ✅ Integrated Prometheus metrics collection for asynchronous tasks
+- ✅ Grafana dashboards for real-time async task monitoring
+- ✅ Enhanced Kafka audit log consumer with non-blocking Elasticsearch indexing
+
+---
 ### 📌 `v1.1.2` – Kafka DLQ + Observability
 
 **Release date**: 2025-04-21  
