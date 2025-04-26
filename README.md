@@ -239,6 +239,18 @@ Thus, developers enjoy a fully traceable, observable, and reliable code generati
 - [ObjectMapper Best Practices](./docs/object-mapper-best-practices.md)
 
 ## 🗭 Version History
+### 📌 `v1.4.0` – MongoDB Search Support + OpenAPI Enhancements
+
+**Release date**: 2025-04-26 
+This version introduces structured search APIs via MongoDB and enhances API documentation.
+
+- ✅ MongoDB field-based filtering, batch upload, pagination support
+- ✅ Improved OpenAPI/Swagger documentation for better API discoverability
+- ✅ Consolidated async task service with Prometheus metrics
+- ✅ No breaking changes; fully backward-compatible
+
+---
+
 ### 📌 `v1.3.1` – Unified Async Task Service + Prometheus Observability
 
 **Release date**: 2025-04-25  
