@@ -7,6 +7,9 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import com.rapidcrud.generator.elasticsearch.AuditLogSearchRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,13 +25,22 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/logs")
+@Tag(name = "Audit Log Search (Elasticsearch)", description = "APIs for searching audit logs via Elasticsearch based on keywords")
 @RequiredArgsConstructor
 public class AuditLogSearchController {
 
     private final ElasticsearchClient elasticsearchClient;
 
     @PostMapping("/search")
-    @Operation(summary = "Search logs from Elasticsearch", description = "Filter by action, entity, keyword, and pagination")
+    @Operation(
+            summary = "Search audit logs by keyword",
+            description = "Perform full-text search on audit logs via Elasticsearch. Suitable for fuzzy search scenarios."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Search completed successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad request - invalid parameters"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     public List<Map<String, Object>> search(@RequestBody AuditLogSearchRequest req) throws IOException {
         BoolQuery.Builder boolBuilder = new BoolQuery.Builder();
 
