@@ -195,6 +195,44 @@ mongo
 use rapid_crud_logs
 db.audit_logs.find().pretty()
 ```
+## 📚 Query Routing Rules
+
+In the audit log system, we use both MongoDB and Elasticsearch for different query scenarios to balance reliability and search performance.
+
+| Scenario | Use MongoDB Queries (`/api/audit-logs/**`) | Use Elasticsearch Queries (`/api/logs/**`)                       |
+|:---|:---|:-----------------------------------------------------------------|
+| Query purpose | Precise filtering (by fields) | Fuzzy search or keyword-based search                             |
+| Target fields | - `action`<br>- `entity`<br>- `timestamp` | - Keywords in `payload` (e.g., user name)                        |
+| Suitable situations | - List recent audit logs<br>- Filter by action/entity<br>- Time range queries | - Search for a keyword across all payloads<br>- Full-text search |
+| Performance | Collection scan by default (can be accelerated via indexes) | High-performance full-text search over large datasets            |
+| Consistency guarantee | Strong consistency (primary storage) | Eventual consistency (secondary copy)                            |
+
+> **Rule of Thumb**:  
+> 👉 Use MongoDB when you know the fields and exact values.  
+> 👉 Use Elasticsearch when you only know a keyword or need fuzzy search.
+
+---
+
+## 🎯 Real-World Application Example
+> This example is from the perspective of the platform operator.
+
+Imagine a SaaS startup uses **Rapid CRUD Generator** to quickly build an internal employee management system.
+
+Every time a project is generated:
+- A structured audit log is sent to Kafka.
+- MongoDB stores the log for compliance and internal audits.
+- Elasticsearch indexes the log for fast keyword search.
+- Prometheus and Grafana monitor async task health and latency.
+
+Thus, developers enjoy a fully traceable, observable, and reliable code generation platform — right out of the box.
+
+| Practical Need | API Used | Backend Source | Why |
+|:---|:---|:---|:---|
+| Find who generated code within a time range | `/api/audit-logs/search` | MongoDB | Structured filtering by `action`/`timestamp` |
+| Find a historical record containing "Employee" keyword | `/api/logs/search` | Elasticsearch | Fuzzy search in payload content |
+| Monitor async task success rate and latency | Grafana Dashboard | Prometheus | Real-time system observability |
+
+---
 
 ## 📚 Developer Docs
 
