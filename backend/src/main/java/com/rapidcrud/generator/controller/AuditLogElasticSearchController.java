@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/logs")
 @Tag(name = "Audit Log Search (Elasticsearch)", description = "APIs for searching audit logs via Elasticsearch based on keywords")
 @RequiredArgsConstructor
-public class AuditLogSearchController {
+public class AuditLogElasticSearchController {
 
     private final ElasticsearchClient elasticsearchClient;
 

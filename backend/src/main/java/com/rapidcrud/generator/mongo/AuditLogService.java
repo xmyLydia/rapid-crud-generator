@@ -1,9 +1,12 @@
 package com.rapidcrud.generator.mongo;
 
+import com.rapidcrud.generator.utils.SortOrder;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -21,9 +24,12 @@ public class AuditLogService {
     /**
      * pagination query
      */
-    public Page<AuditLogDocument> findAllByPage(int page, int size) {
-        return auditLogRepository.findAll(PageRequest.of(page, size));
+    public Page<AuditLogDocument> findAllByPage(int page, int size, SortOrder sortOrder) {
+        Sort.Direction direction = sortOrder == SortOrder.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "timestamp"));
+        return auditLogRepository.findAll(pageable);
     }
+
 
     /**
      * condition query (such as action / entity / keyword query)

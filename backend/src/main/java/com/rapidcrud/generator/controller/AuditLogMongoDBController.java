@@ -2,6 +2,7 @@ package com.rapidcrud.generator.controller;
 
 import com.rapidcrud.generator.mongo.AuditLogDocument;
 import com.rapidcrud.generator.mongo.AuditLogService;
+import com.rapidcrud.generator.utils.SortOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/audit-logs")
 @Tag(name = "Audit Log Management (MongoDB)", description = "APIs for listing and filtering audit logs via MongoDB")
 @RequiredArgsConstructor
-public class AuditLogController {
+public class AuditLogMongoDBController {
 
     private final AuditLogService auditLogService;
 
@@ -26,20 +27,22 @@ public class AuditLogController {
      */
     @GetMapping("/page")
     @Operation(
-            summary = "Get audit logs by pagination",
-            description = "Retrieve audit logs from MongoDB with pagination support."
+            summary = "Paginated query audit logs",
+            description = "Get paginated audit logs sorted by timestamp (default: DESC)."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Page retrieved successfully"),
+            @ApiResponse(responseCode = "200", description = "Page query completed successfully"),
             @ApiResponse(responseCode = "400", description = "Bad request - invalid parameters"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public Page<AuditLogDocument> findAllByPage(
+            @RequestParam(defaultValue = "DESC") SortOrder sortOrder,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return auditLogService.findAllByPage(page, size);
+        return auditLogService.findAllByPage(page, size, sortOrder);
     }
+
 
     /**
      * condition query
