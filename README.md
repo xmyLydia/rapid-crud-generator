@@ -23,6 +23,9 @@ No boilerplate. No setup. Just schema in, code out.
 - 🔍 Elasticsearch integration for searchable logs
 - ⚡ Unified Async Task Service with built-in Prometheus metrics (success, failure, latency)
 - 📈 Kibana + Prometheus + Grafana observability (Docker Compose)
+- 🚀 Kafka Batch Consumption (Batch Pull + Multi-threading)
+- 📦 DLQ + Async Failed Topic Decoupling
+- 🔍 Timeout and Unfinished Task Detection (for high reliability)
 
 ---
 
@@ -231,7 +234,7 @@ Thus, developers enjoy a fully traceable, observable, and reliable code generati
 | Find who generated code within a time range | `/api/audit-logs/search` | MongoDB | Structured filtering by `action`/`timestamp` |
 | Find a historical record containing "Employee" keyword | `/api/logs/search` | Elasticsearch | Fuzzy search in payload content |
 | Monitor async task success rate and latency | Grafana Dashboard | Prometheus | Real-time system observability |
-
+- ✅ Kafka Consumption is optimized with Batch Pull + Thread Pool Parallelism, ensuring stable performance under high concurrency.
 ---
 
 ## 📚 Developer Docs
@@ -239,6 +242,20 @@ Thus, developers enjoy a fully traceable, observable, and reliable code generati
 - [ObjectMapper Best Practices](./docs/object-mapper-best-practices.md)
 
 ## 🗭 Version History
+
+### 📌 `v1.5.0` – Kafka Batch Consumer + Multi-threading Optimization
+
+**Release date**: 2025-04-28
+
+This version focuses on high-concurrency Kafka consumption and failure isolation.
+
+- ✅ Support batch consumption (@KafkaListener batch mode)
+- ✅ Multi-threaded parallel processing with thread pool
+- ✅ Timeout and unfinished task detection with latch
+- ✅ Separate Async Failed Topic for batch processing failure
+
+---
+
 ### 📌 `v1.4.0` – MongoDB Search Support + OpenAPI Enhancements
 
 **Release date**: 2025-04-26 
