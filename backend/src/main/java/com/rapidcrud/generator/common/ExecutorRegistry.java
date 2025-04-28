@@ -1,8 +1,8 @@
 package com.rapidcrud.generator.common;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -20,16 +20,16 @@ public class ExecutorRegistry {
     private final Map<String, Executor> executors = new ConcurrentHashMap<>();
 
     public ExecutorRegistry(
-            @Qualifier(LOG_EXECUTOR_NAME) Executor logExecutor,
-            @Qualifier(CONSUMER_TASK_EXECUTOR_NAME) Executor consumerTaskExecutor
+            @Qualifier(LOG_EXECUTOR_NAME) ThreadPoolTaskExecutor logExecutor,
+            @Qualifier(CONSUMER_TASK_EXECUTOR_NAME) ThreadPoolTaskExecutor consumerTaskExecutor
     ) {
         log.info("🔵 Creating ExecutorRegistry, logExecutor = {}, consumerExecutor = {}", logExecutor, consumerTaskExecutor);
         executors.put(LOG_EXECUTOR_KEY, logExecutor);
         executors.put(CONSUMER_EXECUTOR_KEY, consumerTaskExecutor);
     }
 
-    public Executor getExecutor(String name) {
-        Executor executor = executors.get(name);
+    public ThreadPoolTaskExecutor getExecutor(String name) {
+        ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) executors.get(name);
         if (executor == null) {
             throw new IllegalArgumentException("❌ No executor found for name: " + name);
         }
