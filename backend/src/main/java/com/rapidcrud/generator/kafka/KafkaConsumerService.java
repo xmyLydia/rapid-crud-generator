@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.isNull;
@@ -63,6 +64,7 @@ public class KafkaConsumerService {
         CountDownLatch latch = new CountDownLatch(events.size());
         List<AuditLogEvent> failedEvents = Collections.synchronizedList(new ArrayList<>());
         ConcurrentHashMap<String, Boolean> processingMap = new ConcurrentHashMap<>();
+        Map<AuditLogEvent, Future<?>> futureMap = new ConcurrentHashMap<>();
 
         try {
             for (AuditLogEvent event : events) {
@@ -70,7 +72,7 @@ public class KafkaConsumerService {
                 String eventId = event.getAction() + "_" + event.getTimestamp();
                 processingMap.put(eventId, false); // initialized as false (not done)
 
-                executorRegistry.getExecutor(ExecutorRegistry.CONSUMER_EXECUTOR_KEY).execute(() -> {
+                Future<?> future = executorRegistry.getExecutor(ExecutorRegistry.CONSUMER_EXECUTOR_KEY).submit(() -> {
                     try {
                         saveToMongo(event);
                         saveToElasticSearchAsync(event);
@@ -86,6 +88,7 @@ public class KafkaConsumerService {
                         latch.countDown();
                     }
                 });
+                futureMap.put(event, future);
             }
 
             // ✅ wait for all sub tasks completed with max 30s
@@ -97,7 +100,18 @@ public class KafkaConsumerService {
                         log.error("🚨 Unfinished Event ID: {}", id);
                     }
                 });
-                       }
+                // ➡️ cancel unprocessed future instance
+                for (Map.Entry<AuditLogEvent, Future<?>> entry : futureMap.entrySet()) {
+                    AuditLogEvent event = entry.getKey();
+                    Future<?> future = entry.getValue();
+                    if (!future.isDone()) {
+                        log.error("🚨 Future timeout, canceling event: {}", event);
+                        future.cancel(true); // cancel the running or queued task
+                        failedEvents.add(event); // ➡️ send to failed topic
+                    }
+                }
+
+           }
             ack.acknowledge();
 
         } catch (Exception criticalEx) {
