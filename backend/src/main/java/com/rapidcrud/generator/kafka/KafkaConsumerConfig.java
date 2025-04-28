@@ -2,8 +2,6 @@ package com.rapidcrud.generator.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -18,7 +16,6 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.BackOffExecution;
-import java.util.function.BiConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,27 +64,32 @@ public class KafkaConsumerConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "audit-consumer-group");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // manual submit offset
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100); // ✅ pull 100 messages per batch
 
         return new DefaultKafkaConsumerFactory<>(
                 props,
-                keyDeserializer,  // ✅ 显式传入 key deserializer
-                valueDeserializer               // ✅ 显式传入 value deserializer 实例
+                keyDeserializer,
+                valueDeserializer
         );
     }
 
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, AuditLogEvent> kafkaListenerContainerFactory(KafkaTemplate<String, AuditLogEvent> kafkaTemplate) {
+    @Bean(name = "kafkaBatchListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, AuditLogEvent> kafkaBatchListenerContainerFactory(KafkaTemplate<String, AuditLogEvent> kafkaTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, AuditLogEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
 
-        // ✅ 设置手动 ACK 模式
+        // ✅ enable batch consume
+        factory.setBatchListener(true);
+
+        // ✅ set manual ACK mode (submit after processed)
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
 
-        // ✅ 设置消费线程并发数（如果需要）
+        // ✅ set consumer thread concurrency number
         factory.setConcurrency(3);
 
-        // ⬇️ 加入 error handler
+        // ⬇️ add error handler
         factory.setCommonErrorHandler(errorHandler(kafkaTemplate));
 
         return factory;

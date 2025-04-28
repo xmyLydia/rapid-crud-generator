@@ -1,6 +1,6 @@
 package com.rapidcrud.generator.mongo;
 
-import com.rapidcrud.generator.utils.SortOrder;
+import com.rapidcrud.generator.common.SortOrder;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

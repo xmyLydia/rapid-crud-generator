@@ -1,5 +1,6 @@
 package com.rapidcrud.generator.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rapidcrud.generator.mongo.AuditDeadLetterDocument;
 import com.rapidcrud.generator.mongo.AuditDeadLetterRepository;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -20,31 +21,37 @@ public class KafkaDLQConsumerService {
 
     private final AuditDeadLetterRepository deadLetterRepository;
     private final MeterRegistry meterRegistry;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "audit-log-dlt", groupId = "dlq-consumer-group")
-    public void handleDLQ(AuditLogEvent event) {
-        Instant start = Instant.now();
-        log.warn("❌ [DLQ] Received: {}", event);
+    public void handleDLQ(String message) {
+        try {
+            AuditLogEvent event = objectMapper.readValue(message, AuditLogEvent.class);
+            Instant start = Instant.now();
+            log.warn("❌ [DLQ] Received: {}", event);
 
-        AuditDeadLetterDocument doc = new AuditDeadLetterDocument();
-        doc.setAction(event.getAction());
-        doc.setEntity(event.getEntity());
-        doc.setPayload(event.getPayload());
-        doc.setTimestamp(event.getTimestamp());
-        doc.setDeadLetteredAt(LocalDateTime.now());
-        doc.setErrorMessage("Failed after max retry attempts");
+            AuditDeadLetterDocument doc = new AuditDeadLetterDocument();
+            doc.setAction(event.getAction());
+            doc.setEntity(event.getEntity());
+            doc.setPayload(event.getPayload());
+            doc.setTimestamp(event.getTimestamp());
+            doc.setDeadLetteredAt(LocalDateTime.now());
+            doc.setErrorMessage("Failed after max retry attempts");
 
-        deadLetterRepository.save(doc);
+            deadLetterRepository.save(doc);
 
-        log.warn("✅ DLQ message saved to MongoDB (audit_dead_logs)");
+            log.warn("✅ DLQ message saved to MongoDB (audit_dead_logs)");
 
-        // ✅ 埋点：DLQ 消费成功次数 +1
-        meterRegistry.counter("dlq_consumed_success_total").increment();
+            // ✅ 埋点：DLQ 消费成功次数 +1
+            meterRegistry.counter("dlq_consumed_success_total").increment();
 
-        // Record time cost
-        Timer.builder("dlq_processing_duration_seconds")
-                .description("Duration for processing DLQ messages")
-                .register(meterRegistry)
-                .record(Duration.between(start, Instant.now()));
+            // Record time cost
+            Timer.builder("dlq_processing_duration_seconds")
+                    .description("Duration for processing DLQ messages")
+                    .register(meterRegistry)
+                    .record(Duration.between(start, Instant.now()));
+        } catch (Exception e) {
+            log.error("❌ Failed to process DLQ message: {}", message, e);
+        }
     }
 }

@@ -1,21 +1,18 @@
 package com.rapidcrud.generator.kafka;
 
+import com.rapidcrud.generator.common.ExecutorRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.Executor;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AsyncLogService {
 
-    @Qualifier("logExecutor")
-    private final Executor executor;
+    private final ExecutorRegistry executorRegistry;
 
     private final MeterRegistry meterRegistry;
 
@@ -26,7 +23,7 @@ public class AsyncLogService {
      * @param task     logic to execute
      */
     public void submit(String taskName, Runnable task) {
-        executor.execute(() -> {
+        executorRegistry.getExecutor(ExecutorRegistry.LOG_EXECUTOR_KEY).execute(() -> {
             Timer.Sample sample = Timer.start(meterRegistry);
             try {
                 task.run();

@@ -2,7 +2,7 @@ package com.rapidcrud.generator.controller;
 
 import com.rapidcrud.generator.mongo.AuditLogDocument;
 import com.rapidcrud.generator.mongo.AuditLogService;
-import com.rapidcrud.generator.utils.SortOrder;
+import com.rapidcrud.generator.common.SortOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
