@@ -26,7 +26,7 @@ No boilerplate. No setup. Just schema in, code out.
 - 🚀 Kafka Batch Consumption (Batch Pull + Multi-threading)
 - 📦 DLQ + Async Failed Topic Decoupling
 - 🔍 Timeout and Unfinished Task Detection (for high reliability)
-
+- ✅ Frontend + backend integrated build script
 ---
 
 ## 📦 Output Structure
@@ -53,19 +53,30 @@ output/
 ---
 
 ## 🚀 How to Use (Developer Mode)
-
-### 1. Start backend (Spring Boot)
+### 1. Start dependency stack (Mongo + Kafka + ES)
+```bash
+docker-compose up -d
+```
+### 2. Build frontend and integrate with Spring Boot
+```bash
+cd frontend
+npm install
+npm run build-and-copy
+```
+> This runs vite build and copies dist/ files into Spring Boot's static/ folder.
+### 3. Start backend (Spring Boot)
 ```bash
 `cd backend
 ./mvnw spring-boot:run`
 ```
+### 4. Visit the log search UI: http://localhost:5174/logs
 
-### 2. Explore API via Swagger UI
+### 5. Explore API via Swagger UI
 You can view and test the API in your browser:
 
 🔗 http://localhost:8080/swagger-ui/index.html
 
-### 3. Send your JSON schema via Postman or curl
+### 6. Send your JSON schema via Postman or curl
 
 Make sure your backend service is running at `http://localhost:8080`.
 
@@ -177,11 +188,15 @@ sequenceDiagram
 
 ### ✅ Technologies Used
 
-| Layer       | Stack                                                                 |
-|-------------|-----------------------------------------------------------------------|
-| Kafka       | `spring-kafka`, `audit-log-topic`, `JsonSerializer/Deserializer`     |
-| MongoDB     | `spring-boot-starter-data-mongodb`, `AuditLogDocument`               |
-| Decoupling  | Non-blocking, fully async consumer                                    |
+| Layer      | Stack                                                            |
+|------------|------------------------------------------------------------------|
+| Frontend   | Vue 3 + Vite + Element Plus                                      |
+| Backend    | Spring Boot + Kafka + MongoDB + Elasticsearch                    |
+| Kafka      | `spring-kafka`, `audit-log-topic`, `JsonSerializer/Deserializer` |
+| MongoDB    | `spring-boot-starter-data-mongodb`, `AuditLogDocument`           |
+| Observability | Micrometer + Prometheus + Grafana                             |
+| Deployment | Maven + npm + Docker Compose                                     |
+
 
 ### ✅ MongoDB Configuration
 In `application.yml`:
