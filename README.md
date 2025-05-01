@@ -100,17 +100,21 @@ curl -X POST http://localhost:8080/api/generate \
 
 ### 🔎 Search Audit Logs (Elasticsearch)
 
-Endpoint: POST `/api/logs/search`
+Endpoint: POST `/api/logs/elasticsearch/search`
 
 Example request:
 ```json
 {
-"action": "GENERATE",
-"entity": "user",
-"keyword": "Product",
-"page": 0,
-"size": 10
+  "action": "GENERATE",
+  "entity": "User",
+  "keyword": "String",
+  "page": 0,
+  "size": 5,
+  "sortBy": "timestamp",
+  "sortOrder": "DESC",
+  "highlightFields":["payload", "action"]
 }
+
 ```
 Searchable fields:
 - action
